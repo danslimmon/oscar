@@ -42,7 +42,7 @@ desc = u.get_description("785357100527")
 # Match against description rules
 t = trello.TrelloApi(conf['trello_app_key'])
 t.set_token(conf['trello_token'])
-rule_lists = t.boards.get_list(conf['trello_rule_board'])
+rule_lists = t.boards.get_list(conf['trello_db_board'])
 desc_rule_list = [x for x in rule_lists
                   if x['name'] == 'description_rules'][0]
 desc_rules = [json.loads(card['name']) for card in t.lists.get_card(desc_rule_list['id'])]
