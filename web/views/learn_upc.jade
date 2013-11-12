@@ -3,7 +3,7 @@ extends layout
 block content
   p Learn the grocery item corresponding to UPC
   br
-  h1 #{opp_data['upc']}
+  h1 #{opp_data["upc"]}
 
   form(action='/submit-learn-upc',method='post')
 
@@ -12,7 +12,7 @@ block content
         label(for='item') Item
            input(id='item',type='text',value='',name='item')
 
-    input(id='upc',type='hidden',value='#{opp_data['upc']}',name='upc)
+    input(id='upc',type='hidden',value='#{opp_data["upc"]}',name='upc')
 
     div(data-role='fieldcontain')
       input(id='submit-learn-upc',type='submit',value='Learn',name='submit-learn-upc')

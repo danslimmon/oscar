@@ -1,4 +1,4 @@
-var trellodb = require('./lib/trellodb');
+var trellodb = require('../lib/trellodb');
 
 exports.learn_upc = function(req, res){
   res.render('learn_upc', {
