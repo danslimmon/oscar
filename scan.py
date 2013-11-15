@@ -1,15 +1,21 @@
 #!/usr/bin/env python
 
 import time
+from datetime import datetime
 import struct
 import select
+import socket
+import random
 import json
-import yaml
 import urllib2
 import hashlib
 import hmac
 import base64
+
 import trello
+from twilio.rest import TwilioRestClient
+
+from lib import conf
 
 
 def parse_scanner_data(scanner_data):
@@ -51,10 +57,51 @@ class UPCAPI:
         json_blob = urllib2.urlopen(url).read()
         return json.loads(json_blob)['description']
 
-conf = yaml.load(open('/etc/oscar.yaml').read())
+
+def local_ip():
+    """Returns the IP that the local host uses to talk to the Internet."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("trello.com", 80))
+    addr = s.getsockname()[0]
+    s.close()
+    return addr
 
 
-f = open(conf['scanner_device'], 'rb')
+def generate_opp_id():
+    return ''.join(random.sample('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 12))
+
+
+def opp_url(opp):
+    return 'http://{0}/learn-barcode/{1}'.format(local_ip(), opp['barcode'])
+
+
+def create_barcode_opp(barcode, trello_api):
+    """Creates a learning opportunity for the given barcode and writes it to Trello
+    
+       Returns the dict."""
+    opp = {
+        'type': 'barcode',
+        'opp_id': generate_opp_id(),
+        'barcode': barcode,
+        'created_dt': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+
+    rule_lists = trello_api.boards.get_list(conf.get()['trello_db_board'])
+    opp_list = [x for x in rule_lists if x['name'] == 'learning_opportunities'][0]
+    trello_api.lists.new_card(opp_list['id'], json.dumps(opp))
+    return opp
+
+
+def publish_barcode_opp(opp):
+    client = TwilioRestClient(conf.get()['twilio_sid'], conf.get()['twilio_token'])
+    message = client.sms.messages.create(body='''Hi! Oscar here. You scanned a code I didn't recognize. Care to fill me in?  {0}'''.format(opp_url(opp)),
+                                         to='+{0}'.format(conf.get()['twilio_dest']),
+                                         from_='+{0}'.format(conf.get()['twilio_src']))
+ 
+
+t = trello.TrelloApi(conf.get()['trello_app_key'])
+t.set_token(conf.get()['trello_token'])
+f = open(conf.get()['scanner_device'], 'rb')
 while True:
     print 'Waiting for scanner data'
 
@@ -76,16 +123,33 @@ while True:
             break
  
     # Parse the binary data as a UPC
-    upc = parse_scanner_data(scanner_data)
+    barcode = parse_scanner_data(scanner_data)
+    print "Scanned barcode '{0}'".format(barcode)
 
     # Get the item's description
-    u = UPCAPI(conf['digiteyes_app_key'], conf['digiteyes_auth_key'])
-    desc = u.get_description(upc)
-
+    u = UPCAPI(conf.get()['digiteyes_app_key'], conf.get()['digiteyes_auth_key'])
+    try:
+        desc = u.get_description(barcode)
+        print "Received description '{0}' for barcode {1}".format(desc, repr(barcode))
+    except urllib2.HTTPError, e:
+        if 'UPC/EAN code invalid' in e.msg and barcode != '0000':
+            # ('0000' is garbage that my scanner occasionally outputs at random)
+            print "Barcode {0} not recognized as a UPC; creating learning opportunity".format(repr(barcode))
+            opp_id = create_barcode_opp(barcode, t)
+            print "Publishing learning opportunity via SMS"
+            publish_barcode_opp(opp_id)
+            continue
+        elif 'Not found' in e.msg:
+            print "Barcode {0} not found in UPC database; creating learning opportunity".format(repr(barcode))
+            opp_id = create_barcode_opp(barcode, t)
+            print "Publishing learning opportunity via SMS"
+            publish_barcode_opp(opp_id)
+            continue
+        else:
+            raise
+    
     # Match against description rules
-    t = trello.TrelloApi(conf['trello_app_key'])
-    t.set_token(conf['trello_token'])
-    rule_lists = t.boards.get_list(conf['trello_db_board'])
+    rule_lists = t.boards.get_list(conf.get()['trello_db_board'])
     desc_rule_list = [x for x in rule_lists
                       if x['name'] == 'description_rules'][0]
     desc_rules = [json.loads(card['name']) for card in t.lists.get_card(desc_rule_list['id'])]
@@ -98,12 +162,13 @@ while True:
         continue
 
     # Get the current grocery list
-    lists = t.boards.get_list(conf['trello_grocery_board'])
+    lists = t.boards.get_list(conf.get()['trello_grocery_board'])
     grocery_list = [x for x in lists
-                    if x['name'] == conf['trello_grocery_list']][0]
+                    if x['name'] == conf.get()['trello_grocery_list']][0]
     cards = t.lists.get_card(grocery_list['id'])
     card_names = [card['name'] for card in cards]
 
     # Add item if it's not there already
     if item_to_add not in card_names:
+        print "Adding '{0}' to grocery list".format(item_to_add)
         t.lists.new_card(grocery_list['id'], item_to_add)
