@@ -42,8 +42,8 @@ app.param('opp_id', function(req, res, next, id) {
                   });
 });
 
-app.get('/learn-upc/:opp_id', routes.learn_upc);
-app.post('/submit-learn-upc', routes.submit_learn_upc);
+app.get('/learn-barcode/:opp_id', routes.learn_barcode);
+app.post('/submit-learn-barcode', routes.submit_learn_barcode);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

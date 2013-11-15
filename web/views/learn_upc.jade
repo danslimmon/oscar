@@ -1,18 +1,18 @@
 extends layout
 
 block content
-  p Learn the grocery item corresponding to UPC
+  p Learn the grocery item corresponding to barcode
   br
-  h1 #{opp_data["upc"]}
+  h1 #{opp_data["barcode"]}
 
-  form(action='/submit-learn-upc',method='post')
+  form(action='/submit-learn-barcode',method='post')
 
     div(data-role='fieldcontain')
       fieldset(data-role='controlgroup')
         label(for='item') Item
            input(id='item',type='text',value='',name='item')
 
-    input(id='upc',type='hidden',value='#{opp_data["upc"]}',name='upc')
+    input(id='barcode',type='hidden',value='#{opp_data["barcode"]}',name='barcode')
 
     div(data-role='fieldcontain')
-      input(id='submit-learn-upc',type='submit',value='Learn',name='submit-learn-upc')
+      input(id='submit-learn-barcode',type='submit',value='Learn',name='submit-learn-barcode')
