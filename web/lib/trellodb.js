@@ -52,12 +52,14 @@ TrelloDB.prototype.lookup = function(table, filter_callback, result_callback) {
 }
 
 // Adds the given item to the given table.
-TrelloDB.prototype.insert = function(table, item) {
-  trello_api.post('1/list/' + this._with_list_id(table) + '/cards', function(err, data) {
-    var cards = data;
-    var blobs = data.map(function(card) { return card['name'] });
-    var rows = blobs.map(function(blob) { return JSON.parse(blob) });
-    return rows.filter(filter_callback);
+//
+// callback() will be called when the insert is complete.
+TrelloDB.prototype.insert = function(table, rule, callback) {
+  this._with_list_id(table, function(list_id) {
+    trello_api.post('1/list/' + list_id + '/cards', {name: JSON.stringify(rule)}, function(err) {
+      if (err) { console.log(err); }
+      callback();
+    });
   });
 }
 
