@@ -42,8 +42,8 @@ app.param('opp_id', function(req, res, next, id) {
                     return(row.opp_id == req.params.opp_id)
                   },
                   function(result_rows) {
-                      app.locals.opp_data = result_rows[0];
-                      next();
+                    app.locals.opp_data = result_rows[0];
+                    next();
                   });
 });
 
