@@ -12,6 +12,7 @@ exports.submit_learn_barcode = function(req, res){
   trellodb.insert('barcode_rules',
                   rule,
                   function() {
-                      res.render('thank_barcode', {rule: rule})
+                      res.render('thank_barcode', {title: 'Oscar: Learned barcode',
+                                                   rule: rule})
                   });
 };
