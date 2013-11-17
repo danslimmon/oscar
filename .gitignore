@@ -1,4 +1,4 @@
-*.sw?
+.*.sw?
 *.py?
 *~
 node_modules
