@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+#@DEBUG
 import time
 from datetime import datetime
 import struct
@@ -33,6 +34,33 @@ def parse_scanner_data(scanner_data):
 
     return ''.join(upc_chars)
 
+
+class TrelloDB:
+    """Implements a document store on top of Trello."""
+    def __init__(self, trello_api, board_id):
+        """Initializes the TrelloDB instance.
+
+           'trello_api' should be an instance of trello.TrelloApi, and 'board_id'
+           is the ID of the board containing the lists that our DB uses."""
+        self._api = trello_api
+        self._board_id = board_id
+
+    def _get_list_id(self, table_name):
+        """Returns the Trello list ID for a given 'table'."""
+        all_lists = self._api.boards.get_list(self._board_id)
+        matching_list = [x for x in all_lists if x['name'] == table_name][0]
+        return matching_list['id']
+
+    def get_all(self, table_name):
+        """Returns all dicts stored in the given table."""
+        list_id = self._get_list_id(table_name)
+        return [json.loads(card['name']) for card in self._api.lists.get_card(list_id)]
+
+    def insert(self, table_name, item):
+        """Inserts the given item (a dict) into the given table."""
+        list_id = self._get_list_id(table_name)
+        self._api.lists.new_card(list_id, json.dumps(item))
+ 
 
 class UPCAPI:
     BASEURL = 'https://www.digit-eyes.com/gtin/v2_0'
@@ -72,11 +100,11 @@ def generate_opp_id():
 
 
 def opp_url(opp):
-    return 'http://{0}/learn-barcode/{1}'.format(local_ip(), opp['id'])
+    return 'http://{0}/learn-barcode/{1}'.format(local_ip(), opp['opp_id'])
 
 
-def create_barcode_opp(barcode, trello_api):
-    """Creates a learning opportunity for the given barcode and writes it to Trello
+def create_barcode_opp(trello_db, barcode):
+    """Creates a learning opportunity for the given barcode and writes it to Trello.
     
        Returns the dict."""
     opp = {
@@ -86,9 +114,7 @@ def create_barcode_opp(barcode, trello_api):
         'created_dt': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
 
-    rule_lists = trello_api.boards.get_list(conf.get()['trello_db_board'])
-    opp_list = [x for x in rule_lists if x['name'] == 'learning_opportunities'][0]
-    trello_api.lists.new_card(opp_list['id'], json.dumps(opp))
+    trello_db.insert('learning_opportunities', opp)
     return opp
 
 
@@ -99,16 +125,60 @@ def publish_barcode_opp(opp):
                                          from_='+{0}'.format(conf.get()['twilio_src']))
  
 
-t = trello.TrelloApi(conf.get()['trello_app_key'])
-t.set_token(conf.get()['trello_token'])
-f = open(conf.get()['scanner_device'], 'rb')
+def match_barcode_rule(trello_db, barcode):
+    """Finds a barcode rule matching the given barcode.
+
+       Returns the rule if it exists, otherwise returns None."""
+    rules = trello_db.get_all('barcode_rules')
+    for r in rules:
+        if r['barcode'] == barcode:
+            return r
+    return None
+
+
+def match_description_rule(trello_db, desc):
+    """Finds a description rule matching the given product description.
+
+       Returns the rule if it exists, otherwise returns None."""
+    rules = trello_db.get_all('description_rules')
+    for r in rules:
+        if r['search_term'].lower() in desc.lower():
+            return r
+    return None
+
+
+def add_grocery_item(trello_api, item):
+    """Adds the given item to the grocery list (if it's not already present)."""
+    # Get the current grocery list
+    grocery_board_id = conf.get()['trello_grocery_board']
+    all_lists = trello_api.boards.get_list(grocery_board_id)
+    grocery_list = [x for x in all_lists if x['name'] == conf.get()['trello_grocery_list']][0]
+    cards = trello_api.lists.get_card(grocery_list['id'])
+    card_names = [card['name'] for card in cards]
+
+    # Add item if it's not there already
+    if item not in card_names:
+        print "Adding '{0}' to grocery list".format(item)
+        trello_api.lists.new_card(grocery_list['id'], item)
+    else:
+        print "Item '{0}' is already on the grocery list; not adding".format(item)
+
+
+trello_api = trello.TrelloApi(conf.get()['trello_app_key'])
+trello_api.set_token(conf.get()['trello_token'])
+trello_db = TrelloDB(trello_api, conf.get()['trello_db_board'])
+
+#@DEBUG
+#f = open(conf.get()['scanner_device'], 'rb')
 while True:
     print 'Waiting for scanner data'
 
     # Wait for binary data from the scanner and then read it
     scan_complete = False
     scanner_data = ''
-    while True:
+    #@DEBUG
+    if False:
+    #while True:
         rlist, _wlist, _elist = select.select([f], [], [], 0.1)
         if rlist != []:
             new_data = ''
@@ -123,8 +193,19 @@ while True:
             break
  
     # Parse the binary data as a UPC
-    barcode = parse_scanner_data(scanner_data)
+    #@DEBUG
+    #barcode = parse_scanner_data(scanner_data)
+    barcode = '740522100818'
     print "Scanned barcode '{0}'".format(barcode)
+    #@DEBUG
+    print "Sleeping for 5 seconds"
+    time.sleep(5)
+
+    # Match against barcode rules
+    barcode_rule = match_barcode_rule(trello_db, barcode)
+    if barcode_rule is not None:
+        add_grocery_item(trello_api, barcode_rule['item'])
+        continue
 
     # Get the item's description
     u = UPCAPI(conf.get()['digiteyes_app_key'], conf.get()['digiteyes_auth_key'])
@@ -132,43 +213,25 @@ while True:
         desc = u.get_description(barcode)
         print "Received description '{0}' for barcode {1}".format(desc, repr(barcode))
     except urllib2.HTTPError, e:
-        if 'UPC/EAN code invalid' in e.msg and barcode != '0000':
-            # ('0000' is garbage that my scanner occasionally outputs at random)
+        if 'UPC/EAN code invalid' in e.msg:
             print "Barcode {0} not recognized as a UPC; creating learning opportunity".format(repr(barcode))
-            opp_id = create_barcode_opp(barcode, t)
+            opp = create_barcode_opp(trello_db, barcode)
             print "Publishing learning opportunity via SMS"
-            publish_barcode_opp(opp_id)
+            publish_barcode_opp(opp)
             continue
         elif 'Not found' in e.msg:
             print "Barcode {0} not found in UPC database; creating learning opportunity".format(repr(barcode))
-            opp_id = create_barcode_opp(barcode, t)
+            opp = create_barcode_opp(trello_db, barcode)
             print "Publishing learning opportunity via SMS"
-            publish_barcode_opp(opp_id)
+            publish_barcode_opp(opp)
             continue
         else:
             raise
-    
+
     # Match against description rules
-    rule_lists = t.boards.get_list(conf.get()['trello_db_board'])
-    desc_rule_list = [x for x in rule_lists
-                      if x['name'] == 'description_rules'][0]
-    desc_rules = [json.loads(card['name']) for card in t.lists.get_card(desc_rule_list['id'])]
-    item_to_add = None
-    for r in desc_rules:
-        if r['search_term'].lower() in desc.lower():
-            item_to_add = r['item']
-    if item_to_add is None:
-        print "Don't know what to add for description '{0}'".format(desc)
+    desc_rule = match_description_rule(trello_db, desc)
+    if desc_rule is not None:
+        add_grocery_item(trello_api, desc_rule['item'])
         continue
 
-    # Get the current grocery list
-    lists = t.boards.get_list(conf.get()['trello_grocery_board'])
-    grocery_list = [x for x in lists
-                    if x['name'] == conf.get()['trello_grocery_list']][0]
-    cards = t.lists.get_card(grocery_list['id'])
-    card_names = [card['name'] for card in cards]
-
-    # Add item if it's not there already
-    if item_to_add not in card_names:
-        print "Adding '{0}' to grocery list".format(item_to_add)
-        t.lists.new_card(grocery_list['id'], item_to_add)
+    print "Don't know what to add for product description '{0}'".format(desc)
