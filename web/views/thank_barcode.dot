@@ -1,0 +1,6 @@
+<div class='container text-center'>
+  <h1>Oscar</h1>
+  <div class='row span12'>
+    <p>Awesome! From now on I'll remember that that barcode is for {{=it.rule.item}}.</p>
+  </div>
+</div>
