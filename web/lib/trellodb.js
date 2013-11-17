@@ -11,7 +11,10 @@ function TrelloDB() {
   //
   // Passes the ID to the given callback.
   this._with_list_id = function(table_name, cb) {
-    if (_table_name_cache[table_name] !== undefined) { cb(_table_name_cache[table_name]) }
+    if (_table_name_cache[table_name] !== undefined) {
+      cb(_table_name_cache[table_name]);
+      return;
+    }
 
     trello_api.get('1/board/' + oscar_conf['trello_db_board'] + '/lists', function(err, data) {
       var db_lists = data.filter(function(db_list) {return (db_list['name'] == table_name)});
