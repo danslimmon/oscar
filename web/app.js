@@ -7,6 +7,7 @@ var express = require('express');
 var routes = require('./routes');
 var http = require('http');
 var path = require('path');
+var doT = require('express-dot');
 
 var oscar_conf = require('./lib/conf').conf;
 var trellodb = require('./lib/trellodb').connect();
@@ -16,7 +17,11 @@ var app = express();
 // all environments
 app.set('port', oscar_conf['port'] || 80);
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+
+// Use doT instead of jade because jade is too slow
+app.set('view engine', 'dot');
+app.engine('dot', doT.__express);
+
 app.use(express.favicon());
 app.use(express.logger('dev'));
 app.use(express.json());

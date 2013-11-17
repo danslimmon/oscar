@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Bootstrap responsiveness -->
+    <meta name='viewport' content='width=device-width' initial-scale='1.0'>
+
+    <!-- Don't link phone numbers -- UPCs look like phone numbers to mobile Safari. -->
+    <meta name='format-detection' content='telephone=no'>
+
+    <title>{{= it.title}}</title>
+    <link rel='stylesheet' href='/javascripts/jquery-2.0.3.min.js'>
+    <link rel='stylesheet' href='/bootstrap/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='/bootstrap/css/bootstrap-responsive.min.css'>
+    <script language='javascript' src='/bootstrap/js/bootstrap.min.js'></script>
+  </head>
+  <body>
+    {{= it.body}}
+  </body>
+</html>

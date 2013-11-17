@@ -1,0 +1,17 @@
+<div class='container text-center'>
+  <h1>Oscar</h1>
+
+  <div class='row span12'>
+    <p>What grocery item should I add for the barcode {{=it.opp_data.barcode}}?</p>
+
+    <form action='/submit-learn-barcode' method='post' role='form'>
+      <input id='barcode' type='hidden' value='{{=it.opp_data.barcode}}' name='barcode' />
+      <div class='form-group'>
+        <textarea id='item' class='form-control xxlarge' value='' name='item' autocapitalize='off'></textarea>
+      </div>
+      <div class='form-group'>
+        <input id='submit-learn-barcode', class='form-control' type='submit', value='Learn', name='submit-learn-barcode' />
+      </div>
+    </form>
+  </div>
+</div>

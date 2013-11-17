@@ -1,9 +1,9 @@
 var trellodb = require('../lib/trellodb').connect();
+var doT = require('express-dot');
 
 exports.learn_barcode = function(req, res){
-  res.render('learn_barcode', {
-    title: 'Oscar: Learn Barcode'
-  });
+//  doT.setGlobals({title: 'Oscar: Learn Barcode'});
+  res.render('learn_barcode', {title: 'Oscar: Learn barcode', console:console});
 };
 
 exports.submit_learn_barcode = function(req, res){

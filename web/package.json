@@ -1,5 +1,5 @@
 {
-  "name": "application-name",
+  "name": "oscar",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -8,6 +8,7 @@
   "dependencies": {
     "express": "3.4.4",
     "jade": "*",
-    "node-trello": "*"`
+    "node-trello": "*",
+    "dot": ">=1.0.2"
   }
 }
