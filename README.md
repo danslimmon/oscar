@@ -14,8 +14,8 @@ Here's a video about it!
 Getting Started: Hardware
 -----
 
-I run Oscar on a [Raspberry Pi](raspberry-pi) under [Raspbian](raspbian). I use
-[this barcode scanner](scanner-amazon).
+I run Oscar on a [Raspberry Pi][raspberry-pi] under [Raspbian][raspbian]. I use
+[this barcode scanner][scanner-amazon].
 
 That said, there's no reason Oscar shouldn't work with other hardware.
 
@@ -33,8 +33,8 @@ I haven't really tested that install script, so let's cross our fingers together
 Getting Help
 -----
 
-I'm [on the Twitters](twitter) if you have a quick question. For bug reports, use
-the [issues page](oscar-issues) or submit a pull request.
+I'm [on the Twitters][twitter] if you have a quick question. For bug reports, use
+the [issues page][oscar-issues] or submit a pull request.
 
 
 [raspberry-pi]: http://www.raspberrypi.org/
