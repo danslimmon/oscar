@@ -4,6 +4,12 @@ oscar
 Oscar automatically adds things to your grocery list when you run out. You
 just scan the item's barcode on its way into the trash.
 
+Here's a video about it!
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=9_MNOOgFDg4" target="_blank">
+<img src="http://img.youtube.com/vi/9_MNOOgFDg4/0.jpg" alt="Oscar Demo" width="240" height="180" border="10" />
+</a>
+
 
 Getting Started: Hardware
 -----
