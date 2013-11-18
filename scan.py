@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-#@DEBUG
-import time
 from datetime import datetime
 import struct
 import select
@@ -16,6 +14,7 @@ import base64
 import trello
 from twilio.rest import TwilioRestClient
 
+from lib import trellodb
 from lib import conf
 
 
@@ -34,33 +33,6 @@ def parse_scanner_data(scanner_data):
 
     return ''.join(upc_chars)
 
-
-class TrelloDB:
-    """Implements a document store on top of Trello."""
-    def __init__(self, trello_api, board_id):
-        """Initializes the TrelloDB instance.
-
-           'trello_api' should be an instance of trello.TrelloApi, and 'board_id'
-           is the ID of the board containing the lists that our DB uses."""
-        self._api = trello_api
-        self._board_id = board_id
-
-    def _get_list_id(self, table_name):
-        """Returns the Trello list ID for a given 'table'."""
-        all_lists = self._api.boards.get_list(self._board_id)
-        matching_list = [x for x in all_lists if x['name'] == table_name][0]
-        return matching_list['id']
-
-    def get_all(self, table_name):
-        """Returns all dicts stored in the given table."""
-        list_id = self._get_list_id(table_name)
-        return [json.loads(card['name']) for card in self._api.lists.get_card(list_id)]
-
-    def insert(self, table_name, item):
-        """Inserts the given item (a dict) into the given table."""
-        list_id = self._get_list_id(table_name)
-        self._api.lists.new_card(list_id, json.dumps(item))
- 
 
 class UPCAPI:
     BASEURL = 'https://www.digit-eyes.com/gtin/v2_0'
@@ -166,19 +138,16 @@ def add_grocery_item(trello_api, item):
 
 trello_api = trello.TrelloApi(conf.get()['trello_app_key'])
 trello_api.set_token(conf.get()['trello_token'])
-trello_db = TrelloDB(trello_api, conf.get()['trello_db_board'])
+trello_db = trellodb.TrelloDB(trello_api, conf.get()['trello_db_board'])
 
-#@DEBUG
-#f = open(conf.get()['scanner_device'], 'rb')
+f = open(conf.get()['scanner_device'], 'rb')
 while True:
     print 'Waiting for scanner data'
 
     # Wait for binary data from the scanner and then read it
     scan_complete = False
     scanner_data = ''
-    #@DEBUG
-    if False:
-    #while True:
+    while True:
         rlist, _wlist, _elist = select.select([f], [], [], 0.1)
         if rlist != []:
             new_data = ''
@@ -192,14 +161,9 @@ while True:
         if scan_complete:
             break
  
-    # Parse the binary data as a UPC
-    #@DEBUG
-    #barcode = parse_scanner_data(scanner_data)
-    barcode = '740522100818'
+    # Parse the binary data as a barcode
+    barcode = parse_scanner_data(scanner_data)
     print "Scanned barcode '{0}'".format(barcode)
-    #@DEBUG
-    print "Sleeping for 5 seconds"
-    time.sleep(5)
 
     # Match against barcode rules
     barcode_rule = match_barcode_rule(trello_db, barcode)
