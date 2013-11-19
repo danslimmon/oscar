@@ -112,7 +112,7 @@ print "And lastly, enter the path to your scanner device. If you don't know"
 print "this and you're using a Raspberry Pi, the default should be fine."
 print
 scanner_device = raw_input('Scanner device [/dev/input/event0]: ')
-if scanner_device = '':
+if scanner_device == '':
     scanner_device = '/dev/input/event0'
 
 
