@@ -73,9 +73,9 @@ print
 trello_db_board_url = raw_input('Trello DB board URL: ')
 
 # Get the board IDs from their URLs
-m = re.match('/b/([^/])', trello_grocery_board_url)
+m = re.search('/b/([^/]+)', trello_grocery_board_url)
 trello_grocery_board = m.group(1)
-m = re.match('/b/([^/])', trello_db_board_url)
+m = re.search('/b/([^/]+)', trello_db_board_url)
 trello_db_board = m.group(1)
 trello_grocery_list = 'Groceries'
 
