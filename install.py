@@ -126,6 +126,7 @@ raw_input('Press enter when ready: ')
 
 
 ######################################## oscar_scan dependencies
+run_command('apt-get install python-setuptools')
 run_command('easy_install pip')
 run_command('pip install PyYAML trello')
 
