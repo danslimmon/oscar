@@ -40,9 +40,7 @@ print "and sign up for an account there. This is the database that Oscar uses to
 print "match barcodes with names of products. When you're ready, enter your"
 print "API credentials. They can be found on the \"My Account\" page."
 print
-digiteyes_app_key = raw_input('App Key("K" Code): ')
-# Make sure slashes are included:
-digiteyes_app_key = '/' + digiteyes_app_key.strip('/') + '/'
+digiteyes_app_key = raw_input('App Key ("K" Code): ')
 digiteyes_auth_key = raw_input('Authorization Key ("M" Code): ')
 
 
