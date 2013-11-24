@@ -231,7 +231,7 @@ print '############################################################'
 print
 print 'Done! Your new grocery list can be found at:'
 print
-print '    {0}'.format(grocery_board_url)
+print '    {0}'.format(trello_grocery_board_url)
 print
 print 'If everything worked, then you should be able to start scanning'
 print 'barcodes with oscar. Check out the logs of the scanner process and'
