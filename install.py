@@ -66,7 +66,7 @@ print "First create a board called 'Groceries', and enter its URL here:"
 print
 trello_grocery_board_url = raw_input('Grocery Board URL: ')
 print
-print "And now create a board called 'trello_db', and enter its URL here:"
+print "And now create a board called 'oscar_db', and enter its URL here:"
 print
 trello_db_board_url = raw_input('Trello DB board URL: ')
 
