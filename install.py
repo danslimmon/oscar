@@ -7,7 +7,6 @@ import os
 import sys
 import subprocess
 import re
-import json
 
 
 def run_command(command):
