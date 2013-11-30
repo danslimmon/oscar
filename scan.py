@@ -95,8 +95,11 @@ def create_barcode_opp(trello_db, barcode):
 def publish_barcode_opp(opp):
     message = '''Hi! Oscar here. You scanned a code I didn't recognize. Care to fill me in?  {0}'''
     subject = '''Didn't Recognize Barcode'''
-    send_via_twilio(message)
-    send_via_email(message, subject)
+    communication_method = conf.get()['commnunication_method']
+    if communication_method == 'email':
+        send_via_email(message, subject)
+    else:
+        send_via_twilio(message)
 
 def send_via_twilio(msg):
     client = TwilioRestClient(conf.get()['twilio_sid'], conf.get()['twilio_token'])
