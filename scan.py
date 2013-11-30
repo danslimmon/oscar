@@ -14,6 +14,8 @@ import base64
 import trello
 from twilio.rest import TwilioRestClient
 
+import smtplib
+
 from lib import trellodb
 from lib import conf
 
@@ -91,11 +93,32 @@ def create_barcode_opp(trello_db, barcode):
 
 
 def publish_barcode_opp(opp):
+    message = '''Hi! Oscar here. You scanned a code I didn't recognize. Care to fill me in?  {0}'''
+    subject = '''Didn't Recognize Barcode'''
+    send_via_twilio(message)
+    send_via_email(message, subject)
+
+def send_via_twilio(msg):
     client = TwilioRestClient(conf.get()['twilio_sid'], conf.get()['twilio_token'])
-    message = client.sms.messages.create(body='''Hi! Oscar here. You scanned a code I didn't recognize. Care to fill me in?  {0}'''.format(opp_url(opp)),
+    message = client.sms.messages.create(body=msg.format(opp_url(opp)),
                                          to='+{0}'.format(conf.get()['twilio_dest']),
                                          from_='+{0}'.format(conf.get()['twilio_src']))
- 
+
+def send_via_email(msg, subject):
+    to = conf.get()['email_dest']
+    gmail_user = conf.get()['gmail_user'] 
+    gmail_pwd = conf.get()['gmail_password']
+    smtpserver = smtplib.SMTP("smtp.gmail.com",587)
+    smtpserver.ehlo()
+    smtpserver.starttls()
+    smtpserver.ehlo
+    smtpserver.login(gmail_user, gmail_pwd)
+    header = 'To:' + to + '\n' + 'From: ' + gmail_user + '\n' + 'Subject: ' + subject + ' \n'
+    print header
+    message = header + '\n ' + msg +' \n\n'
+    smtpserver.sendmail(gmail_user, to, message)
+    print 'done!'
+    smtpserver.close()
 
 def match_barcode_rule(trello_db, barcode):
     """Finds a barcode rule matching the given barcode.
