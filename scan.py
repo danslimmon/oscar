@@ -118,9 +118,9 @@ def send_via_email(msg, subject):
     smtpserver.login(gmail_user, gmail_pwd)
     header = 'To:' + to + '\n' + 'From: ' + gmail_user + '\n' + 'Subject: ' + subject + ' \n'
     print header
-    message = header + '\n ' + msg +' \n\n'
+    message = 'Sending email...\n' + header + '\n ' + msg +' \n\n'
     smtpserver.sendmail(gmail_user, to, message)
-    print 'done!'
+    print 'Email sent.'
     smtpserver.close()
 
 def match_barcode_rule(trello_db, barcode):
