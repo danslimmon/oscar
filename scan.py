@@ -93,9 +93,9 @@ def create_barcode_opp(trello_db, barcode):
 
 
 def publish_barcode_opp(opp):
-    message = '''Hi! Oscar here. You scanned a code I didn't recognize. Care to fill me in?  {0}'''
+    message = '''Hi! Oscar here. You scanned a code I didn't recognize. Care to fill me in?  {0}'''.format(opp_url(opp))
     subject = '''Didn't Recognize Barcode'''
-    communication_method = conf.get()['commnunication_method']
+    communication_method = conf.get()['communication_method']
     if communication_method == 'email':
         send_via_email(message, subject)
     else:
@@ -103,7 +103,7 @@ def publish_barcode_opp(opp):
 
 def send_via_twilio(msg):
     client = TwilioRestClient(conf.get()['twilio_sid'], conf.get()['twilio_token'])
-    message = client.sms.messages.create(body=msg.format(opp_url(opp)),
+    message = client.sms.messages.create(body=msg,
                                          to='+{0}'.format(conf.get()['twilio_dest']),
                                          from_='+{0}'.format(conf.get()['twilio_src']))
 
@@ -117,8 +117,8 @@ def send_via_email(msg, subject):
     smtpserver.ehlo
     smtpserver.login(gmail_user, gmail_pwd)
     header = 'To:' + to + '\n' + 'From: ' + gmail_user + '\n' + 'Subject: ' + subject + ' \n'
-    print header
-    message = 'Sending email...\n' + header + '\n ' + msg +' \n\n'
+    print '\nSending email...\n'
+    message = header + '\n ' + msg +' \n\n'
     smtpserver.sendmail(gmail_user, to, message)
     print 'Email sent.'
     smtpserver.close()
@@ -206,7 +206,7 @@ while True:
         if 'UPC/EAN code invalid' in e.msg:
             print "Barcode {0} not recognized as a UPC; creating learning opportunity".format(repr(barcode))
             opp = create_barcode_opp(trello_db, barcode)
-            print "Publishing learning opportunity via SMS"
+            print "Publishing learning opportunity"
             publish_barcode_opp(opp)
             continue
         elif 'Not found' in e.msg:
