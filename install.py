@@ -76,31 +76,60 @@ m = re.search('/b/([^/]+)', trello_db_board_url)
 trello_db_board = m.group(1)
 trello_grocery_list = 'Groceries'
 
-
-######################################## Twilio
+######################################## Communication
 print
-print "Oscar can text you when it scans something it doesn't recognize. This"
+print "Oscar can email or text you when it scans something it doesn't recognize. This"
 print "gives you the opportunity to teach Oscar about items you frequently buy."
-print "To enable this functionality, you need an account with Twilio:"
+print "Please choose whether you want oscar to email or text you by typing 'email' or 'text'."
 print
-print "    https://www.twilio.com/"
-print
-print "If you want to, you can sign up for a Twilio account and enter your"
-print "information below. If not, no sweat: just leave the input blank. You"
-print "can always come back and modify Oscar's config file later."
-print
-twilio_src = raw_input('Twilio number: ')
-if twilio_src != '':
-    twilio_sid = raw_input('Twilio SID: ')
-    twilio_token = raw_input('Twilio token: ')
-    twilio_dest = raw_input('Destination number (the number you want texted): ')
+communication_method = raw_input("Communication method ('email' or 'text'): ")
+while communication_method not in ['email', 'text']:
+    communication_method = raw_input("Please input 'email' or 'text': ")
+
+if communication_method == 'email':
+    ######################################## Email
+    print
+    print "To enable this functionality using email as the communication method, "
+    print "you need an account with GMail:"
+    print
+    print "    https://mail.google.com/"
+    print
+    print "If you want to, you can sign up for a GMail account and enter your"
+    print "information below. If not, no sweat: just leave the input blank. You"
+    print "can always come back and modify Oscar's config file later."
+    print
+    gmail_user = raw_input('GMail Email Address: ')
+    if gmail_user != '':
+        gmail_password = raw_input('GMail Password: ')
+        email_dest = raw_input('Destination email (the address you want emailed): ')
+    else:
+        gmail_password = ''
+        email_dest = ''
+
 else:
-    twilio_sid = ''
-    twilio_token = ''
-    twilio_dest = ''
-# Remove any non-digits from phone numbers
-twilio_src = re.sub('\D', '', twilio_src)
-twilio_dest = re.sub('\D', '', twilio_dest)
+    ######################################## Twilio
+    print
+    print "To enable this functionality using text as the communication method, "
+    print "you need an account with Twilio:"
+    print
+    print "    https://www.twilio.com/"
+    print
+    print "If you want to, you can sign up for a Twilio account and enter your"
+    print "information below. If not, no sweat: just leave the input blank. You"
+    print "can always come back and modify Oscar's config file later."
+    print
+    twilio_src = raw_input('Twilio number: ')
+    if twilio_src != '':
+        twilio_sid = raw_input('Twilio SID: ')
+        twilio_token = raw_input('Twilio token: ')
+        twilio_dest = raw_input('Destination number (the number you want texted): ')
+    else:
+        twilio_sid = ''
+        twilio_token = ''
+        twilio_dest = ''
+    # Remove any non-digits from phone numbers
+    twilio_src = re.sub('\D', '', twilio_src)
+    twilio_dest = re.sub('\D', '', twilio_dest)
 
 
 ######################################## Scanner
@@ -187,6 +216,12 @@ oscar_yaml = open('/etc/oscar.yaml', 'w')
 oscar_yaml.write('''---
 port: 80
 scanner_device: '{scanner_device}'
+
+communication_method: '{communication_method}'
+
+gmail_user: '{gmail_user}'
+gmail_password: '{gmail_password}'
+email_dest: '{email_dest}'
 
 twilio_src: '{twilio_src}'
 twilio_dest: '{twilio_dest}'
