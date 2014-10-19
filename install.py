@@ -86,6 +86,13 @@ communication_method = raw_input("Communication method ('email' or 'text'): ")
 while communication_method not in ['email', 'text']:
     communication_method = raw_input("Please input 'email' or 'text': ")
 
+gmail_user = ''
+gmail_password = ''
+email_dest = ''
+twilio_src = ''
+twilio_sid = ''
+twilio_token = ''
+twilio_dest = ''
 if communication_method == 'email':
     ######################################## Email
     print
@@ -105,7 +112,6 @@ if communication_method == 'email':
     else:
         gmail_password = ''
         email_dest = ''
-
 else:
     ######################################## Twilio
     print
