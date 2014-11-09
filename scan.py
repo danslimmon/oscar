@@ -77,7 +77,7 @@ def opp_url(opp):
     return 'http://{0}/learn-barcode/{1}'.format(local_ip(), opp['opp_id'])
 
 
-def create_barcode_opp(trello_db, barcode, desc):
+def create_barcode_opp(trello_db, barcode, desc=''):
     """Creates a learning opportunity for the given barcode and writes it to Trello.
     
        Returns the dict."""
