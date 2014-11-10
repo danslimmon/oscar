@@ -206,13 +206,19 @@ while True:
     except urllib2.HTTPError, e:
         if 'UPC/EAN code invalid' in e.msg:
             print "Barcode {0} not recognized as a UPC; creating learning opportunity".format(repr(barcode))
-            opp = create_barcode_opp(trello_db, barcode, desc)
+            try:
+                opp = create_barcode_opp(trello_db, barcode, desc)
+            except:
+                opp = create_barcode_opp(trello_db, barcode)
             print "Publishing learning opportunity"
             publish_barcode_opp(opp)
             continue
         elif 'Not found' in e.msg:
             print "Barcode {0} not found in UPC database; creating learning opportunity".format(repr(barcode))
-            opp = create_barcode_opp(trello_db, barcode)
+            try:
+                opp = create_barcode_opp(trello_db, barcode, desc)
+            except:
+                opp = create_barcode_opp(trello_db, barcode)
             print "Publishing learning opportunity via SMS"
             publish_barcode_opp(opp)
             continue
