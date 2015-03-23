@@ -77,7 +77,7 @@ def opp_url(opp):
     return 'http://{0}/learn-barcode/{1}'.format(local_ip(), opp['opp_id'])
 
 
-def create_barcode_opp(trello_db, barcode):
+def create_barcode_opp(trello_db, barcode, desc=''):
     """Creates a learning opportunity for the given barcode and writes it to Trello.
     
        Returns the dict."""
@@ -85,6 +85,7 @@ def create_barcode_opp(trello_db, barcode):
         'type': 'barcode',
         'opp_id': generate_opp_id(),
         'barcode': barcode,
+        'desc': desc,
         'created_dt': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
 
@@ -93,7 +94,7 @@ def create_barcode_opp(trello_db, barcode):
 
 
 def publish_barcode_opp(opp):
-    message = '''Hi! Oscar here. You scanned a code I didn't recognize. Care to fill me in?  {0}'''.format(opp_url(opp))
+    message = '''Hi! Oscar here. You scanned a code I didn't recognize for a "{1}". Care to fill me in?  {0}'''.format(opp_url(opp), opp['desc'])
     subject = '''Didn't Recognize Barcode'''
     communication_method = conf.get()['communication_method']
     if communication_method == 'email':
@@ -205,13 +206,19 @@ while True:
     except urllib2.HTTPError, e:
         if 'UPC/EAN code invalid' in e.msg:
             print "Barcode {0} not recognized as a UPC; creating learning opportunity".format(repr(barcode))
-            opp = create_barcode_opp(trello_db, barcode)
+            try:
+                opp = create_barcode_opp(trello_db, barcode, desc)
+            except:
+                opp = create_barcode_opp(trello_db, barcode)
             print "Publishing learning opportunity"
             publish_barcode_opp(opp)
             continue
         elif 'Not found' in e.msg:
             print "Barcode {0} not found in UPC database; creating learning opportunity".format(repr(barcode))
-            opp = create_barcode_opp(trello_db, barcode)
+            try:
+                opp = create_barcode_opp(trello_db, barcode, desc)
+            except:
+                opp = create_barcode_opp(trello_db, barcode)
             print "Publishing learning opportunity via SMS"
             publish_barcode_opp(opp)
             continue
