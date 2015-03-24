@@ -37,6 +37,13 @@ I'm [on the Twitters][twitter] if you have a quick question. For bug reports, us
 the [issues page][oscar-issues] or submit a pull request.
 
 
+Acknowledgements
+-----
+
+Thanks to the awesome [CloCkWeRX][https://github.com/CloCkWeRX] for picking up my slack
+now that I don't have a Raspberry Pi to test on anymore.
+
+
 [raspberry-pi]: http://www.raspberrypi.org/
 [raspbian]: http://www.raspbian.org/
 [scanner-amazon]: http://www.amazon.com/gp/product/B0085707Z8/ref=oh_details_o03_s00_i03?ie=UTF8&psc=1
