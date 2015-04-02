@@ -40,7 +40,7 @@ the [issues page][oscar-issues] or submit a pull request.
 Acknowledgements
 -----
 
-Thanks to the awesome [CloCkWeRX][https://github.com/CloCkWeRX] for picking up my slack
+Thanks to the awesome [CloCkWeRX](https://github.com/CloCkWeRX) for picking up my slack
 now that I don't have a Raspberry Pi to test on anymore.
 
 
