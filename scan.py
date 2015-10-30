@@ -53,7 +53,7 @@ class UPCAPI:
 
     def get_description(self, upc):
         """Returns the product description for the given UPC.
-        
+
            `upc`: A string containing the UPC."""
         url = self._url(upc)
         json_blob = urllib2.urlopen(url).read()
@@ -77,9 +77,10 @@ def opp_url(opp):
     return 'http://{0}/learn-barcode/{1}'.format(local_ip(), opp['opp_id'])
 
 
+
 def create_barcode_opp(trello_db, barcode, desc=''):
     """Creates a learning opportunity for the given barcode and writes it to Trello.
-    
+
        Returns the dict."""
     opp = {
         'type': 'barcode',
@@ -102,6 +103,16 @@ def publish_barcode_opp(opp):
     else:
         send_via_twilio(message)
 
+def notify_no_rule(desc, barcode):
+    learn_opp = opp_url(create_barcode_opp(trello_db, barcode, desc))
+    message = '''Hi! Oscar here. You scanned a code I don't know what to do with barcode {1}: "{0}". Care to fill me in?'''.format(learn_opp, desc )
+    subject = '''No rules set for grocery item'''
+    communication_method = conf.get()['communication_method']
+    if communication_method == 'email':
+        send_via_email(message, subject)
+    else:
+        send_via_twilio(message)
+
 def send_via_twilio(msg):
     client = TwilioRestClient(conf.get()['twilio_sid'], conf.get()['twilio_token'])
     message = client.sms.messages.create(body=msg,
@@ -110,7 +121,7 @@ def send_via_twilio(msg):
 
 def send_via_email(msg, subject):
     to = conf.get()['email_dest']
-    gmail_user = conf.get()['gmail_user'] 
+    gmail_user = conf.get()['gmail_user']
     gmail_pwd = conf.get()['gmail_password']
     smtpserver = smtplib.SMTP("smtp.gmail.com",587)
     smtpserver.ehlo()
@@ -187,7 +198,7 @@ while True:
             scan_complete = True
         if scan_complete:
             break
- 
+
     # Parse the binary data as a barcode
     barcode = parse_scanner_data(scanner_data)
     print "Scanned barcode '{0}'".format(barcode)
@@ -232,3 +243,4 @@ while True:
         continue
 
     print "Don't know what to add for product description '{0}'".format(desc)
+    notify_no_rule(desc, barcode)
