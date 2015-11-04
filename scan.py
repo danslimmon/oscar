@@ -36,6 +36,9 @@ def parse_scanner_data(scanner_data):
     return ''.join(upc_chars)
 
 
+class CodeNotFound(Exception): pass
+class CodeInvalid(Exception): pass
+
 class UPCAPI:
     BASEURL = 'https://www.digit-eyes.com/gtin/v2_0'
 
@@ -56,8 +59,21 @@ class UPCAPI:
 
            `upc`: A string containing the UPC."""
         url = self._url(upc)
-        json_blob = urllib2.urlopen(url).read()
-        return json.loads(json_blob)['description']
+        try:
+            json_blob = urllib2.urlopen(url).read()
+            return json.loads(json_blob)['description']
+        except urllib2.HTTPError, e:
+            if 'UPC/EAN code invalid' in e.msg:
+                raise CodeInvalid(e.msg)
+            elif 'Not found' in e.msg:
+                raise CodeNotFound(e.msg)
+            else:
+                raise
+
+
+class FakeAPI:
+    def get_description(self, upc):
+        raise CodeNotFound("Code {0} was not found.".format(upc))
 
 
 def local_ip():
@@ -210,31 +226,31 @@ while True:
         continue
 
     # Get the item's description
-    u = UPCAPI(conf.get()['digiteyes_app_key'], conf.get()['digiteyes_auth_key'])
+    if conf.get()['barcode_api'] == 'zeroapi':
+        u = FakeAPI()
+    else:
+        u = UPCAPI(conf.get()['digiteyes_app_key'], conf.get()['digiteyes_auth_key'])
     try:
         desc = u.get_description(barcode)
         print "Received description '{0}' for barcode {1}".format(desc, repr(barcode))
-    except urllib2.HTTPError, e:
-        if 'UPC/EAN code invalid' in e.msg:
-            print "Barcode {0} not recognized as a UPC; creating learning opportunity".format(repr(barcode))
-            try:
-                opp = create_barcode_opp(trello_db, barcode, desc)
-            except:
-                opp = create_barcode_opp(trello_db, barcode)
-            print "Publishing learning opportunity"
-            publish_barcode_opp(opp)
-            continue
-        elif 'Not found' in e.msg:
-            print "Barcode {0} not found in UPC database; creating learning opportunity".format(repr(barcode))
-            try:
-                opp = create_barcode_opp(trello_db, barcode, desc)
-            except:
-                opp = create_barcode_opp(trello_db, barcode)
-            print "Publishing learning opportunity via SMS"
-            publish_barcode_opp(opp)
-            continue
-        else:
-            raise
+    except CodeInvalid:
+        print "Barcode {0} not recognized as a UPC; creating learning opportunity".format(repr(barcode))
+        try:
+            opp = create_barcode_opp(trello_db, barcode, desc)
+        except:
+            opp = create_barcode_opp(trello_db, barcode)
+        print "Publishing learning opportunity"
+        publish_barcode_opp(opp)
+        continue
+    except CodeNotFound:
+        print "Barcode {0} not found in UPC database; creating learning opportunity".format(repr(barcode))
+        try:
+            opp = create_barcode_opp(trello_db, barcode, desc)
+        except:
+            opp = create_barcode_opp(trello_db, barcode)
+        print "Publishing learning opportunity via SMS"
+        publish_barcode_opp(opp)
+        continue
 
     # Match against description rules
     desc_rule = match_description_rule(trello_db, desc)

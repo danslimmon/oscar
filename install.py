@@ -53,7 +53,7 @@ print
 print "Once you have an account, go to this URL:"
 print
 print "    https://trello.com/1/authorize?key={0}&name=oscar&expiration=never&response_type=token&scope=read,write".format(trello_app_key)
-print 
+print
 print "You'll be shown a 'token'; enter it below."
 print
 trello_token = raw_input('Token: ')
@@ -273,6 +273,9 @@ trello_db_board: '{trello_db_board}'
 
 digiteyes_app_key: '{digiteyes_app_key}'
 digiteyes_auth_key: '{digiteyes_auth_key}'
+
+# possible values: 'digiteyes' or 'zeroapi'
+barcode_api: digiteyes
 '''.format(**locals()))
 oscar_yaml.close()
 
