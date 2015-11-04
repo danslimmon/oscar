@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from datetime import datetime
 import struct
@@ -61,7 +62,7 @@ class UPCAPI:
         url = self._url(upc)
         try:
             json_blob = urllib2.urlopen(url).read()
-            return json.loads(json_blob)['description']
+            return json.loads(json_blob)['description'].encode('iso-8859-1')
         except urllib2.HTTPError, e:
             if 'UPC/EAN code invalid' in e.msg:
                 raise CodeInvalid(e.msg)
@@ -168,7 +169,7 @@ def match_description_rule(trello_db, desc):
        Returns the rule if it exists, otherwise returns None."""
     rules = trello_db.get_all('description_rules')
     for r in rules:
-        if r['search_term'].lower() in desc.lower():
+        if r['search_term'].encode('utf8').lower() in desc.lower():
             return r
     return None
 
@@ -232,23 +233,23 @@ while True:
         u = UPCAPI(conf.get()['digiteyes_app_key'], conf.get()['digiteyes_auth_key'])
     try:
         desc = u.get_description(barcode)
-        print "Received description '{0}' for barcode {1}".format(desc, repr(barcode))
+        print "Received description '{0}' for barcode {1}".format(desc, unicode(barcode))
     except CodeInvalid:
-        print "Barcode {0} not recognized as a UPC; creating learning opportunity".format(repr(barcode))
+        print "Barcode {0} not recognized as a UPC; creating learning opportunity".format(unicode(barcode))
         try:
             opp = create_barcode_opp(trello_db, barcode, desc)
         except:
             opp = create_barcode_opp(trello_db, barcode)
-        print "Publishing learning opportunity"
+        print "Code not UPC. Publishing learning opportunity"
         publish_barcode_opp(opp)
         continue
     except CodeNotFound:
-        print "Barcode {0} not found in UPC database; creating learning opportunity".format(repr(barcode))
+        print "Barcode {0} not found in UPC database; creating learning opportunity".format(unicode(barcode))
         try:
             opp = create_barcode_opp(trello_db, barcode, desc)
         except:
             opp = create_barcode_opp(trello_db, barcode)
-        print "Publishing learning opportunity via SMS"
+        print "Code not found. Publishing learning opportunity"
         publish_barcode_opp(opp)
         continue
 
