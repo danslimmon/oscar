@@ -84,7 +84,11 @@ class OpenFoodFactsAPI:
             if data['status_verbose'] != 'product found':
               raise CodeNotFound(data['status_verbose'])
 
-            return data['generic_name_en']
+            if 'product_name' in data['product']:
+              return data['product']['product_name']
+
+            if 'generic_name_en' in data['product']:
+              return data['product']['generic_name_en']
         except urllib2.HTTPError, e:
             if 'Not found' in e.msg:
                 raise CodeNotFound(e.msg)
