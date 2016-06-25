@@ -81,8 +81,8 @@ class OpenFoodFactsAPI:
             json_blob = urllib2.urlopen(url).read()
             data = json.loads(json_blob)
 
-            if data['status_version'] != 'product found':
-              raise CodeNotFound(data['status_version'])
+            if data['status_verbose'] != 'product found':
+              raise CodeNotFound(data['status_verbose'])
 
             return data['generic_name_en']
         except urllib2.HTTPError, e:
