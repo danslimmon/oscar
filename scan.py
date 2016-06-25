@@ -81,7 +81,7 @@ class OpenFoodFactsAPI:
             json_blob = urllib2.urlopen(url).read()
             data = json.loads(json_blob)
 
-            if data['status_version'] != 'product found'
+            if data['status_version'] != 'product found':
               raise CodeNotFound(data['status_version'])
 
             return data['generic_name_en']
@@ -253,7 +253,7 @@ while True:
     barcode_api = conf.get()['barcode_api']
     if barcode_api == 'zeroapi':
         u = FakeAPI()
-    else if barcode_api == 'openfoodfacts':
+    elif barcode_api == 'openfoodfacts':
         u = OpenFoodFactsAPI()
     else:
         u = UPCAPI(conf.get()['digiteyes_app_key'], conf.get()['digiteyes_auth_key'])

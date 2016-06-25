@@ -276,7 +276,7 @@ trello_db_board: '{trello_db_board}'
 digiteyes_app_key: '{digiteyes_app_key}'
 digiteyes_auth_key: '{digiteyes_auth_key}'
 
-# possible values: 'digiteyes' or 'zeroapi'
+# possible values: 'digiteyes', 'openfoodfacts' or 'zeroapi'
 barcode_api: digiteyes
 '''.format(**locals()))
 oscar_yaml.close()
