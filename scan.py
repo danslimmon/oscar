@@ -71,6 +71,30 @@ class UPCAPI:
             else:
                 raise
 
+class OpenFoodFactsAPI:
+    def get_description(self, upc):
+        """Returns the product description for the given UPC.
+
+           `upc`: A string containing the UPC."""
+        url = 'http://world.openfoodfacts.org/api/v0/product/{0}.json'.format(upc)
+        try:
+            json_blob = urllib2.urlopen(url).read()
+            data = json.loads(json_blob)
+
+            if data['status_verbose'] != 'product found':
+              raise CodeNotFound(data['status_verbose'])
+
+            if 'product_name' in data['product']:
+              return data['product']['product_name']
+
+            if 'generic_name_en' in data['product']:
+              return data['product']['generic_name_en']
+        except urllib2.HTTPError, e:
+            if 'Not found' in e.msg:
+                raise CodeNotFound(e.msg)
+            else:
+                raise
+
 
 class FakeAPI:
     def get_description(self, upc):
@@ -114,6 +138,9 @@ def create_barcode_opp(trello_db, barcode, desc=''):
 def publish_barcode_opp(opp):
     message = '''Hi! Oscar here. You scanned a code I didn't recognize for a "{1}". Care to fill me in?  {0}'''.format(opp_url(opp), opp['desc'])
     subject = '''Didn't Recognize Barcode'''
+    if conf.get()['barcode_api'] == 'openfoodfacts':
+      message = '''Hi! Oscar here. You scanned a code I didn't recognize for a "{1}". Care to fill me in?  {0}. Add to http://world.openfoodfacts.org/cgi/product.pl ?'''.format(opp_url(opp), opp['desc'])
+    
     communication_method = conf.get()['communication_method']
     if communication_method == 'email':
         send_via_email(message, subject)
@@ -227,8 +254,11 @@ while True:
         continue
 
     # Get the item's description
-    if conf.get()['barcode_api'] == 'zeroapi':
+    barcode_api = conf.get()['barcode_api']
+    if barcode_api == 'zeroapi':
         u = FakeAPI()
+    elif barcode_api == 'openfoodfacts':
+        u = OpenFoodFactsAPI()
     else:
         u = UPCAPI(conf.get()['digiteyes_app_key'], conf.get()['digiteyes_auth_key'])
     try:
