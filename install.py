@@ -162,7 +162,7 @@ raw_input('Press enter when ready: ')
 ######################################## oscar_scan dependencies
 run_command('apt-get install python-setuptools')
 run_command('easy_install pip')
-run_command('pip install PyYAML trello twilio')
+run_command('pip install PyYAML trello==0.9.1 twilio')
 
 
 ######################################## oscar_web dependencies
